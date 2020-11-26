@@ -15,7 +15,7 @@ import static utils.FileUtils.readStringFromFile;
 public class ZipTests {
 
     @Test
-    void verifyContentInTxtTest() {
+    void verifyContentInZipTest() {
         String source = "src/test/resources/html/1.zip";
         String destination = "src/test/resources/html/unzip";
 
