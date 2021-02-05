@@ -1,27 +1,17 @@
 package tests;
 
-import com.codeborne.selenide.Configuration;
 import com.github.javafaker.Faker;
 import com.github.javafaker.service.FakeValuesService;
 import com.github.javafaker.service.RandomService;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.util.Locale;
 
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.*;
-import static utils.RandomUtils.*;
 
-public class StudentRegistrationFormWithJavaFakerTests {
-
-    @BeforeAll
-    static void setup() {
-        Configuration.startMaximized = true;
-    }
+public class StudentRegistrationFormWithJavaFakerTests extends TestBase {
 
     @Test
     void successfulFillFormTest() {
@@ -46,10 +36,9 @@ public class StudentRegistrationFormWithJavaFakerTests {
                 hobby1 = "Sports",
                 hobby2 = "Reading",
                 hobby3 = "Music",
-                picture = "1.png",
+                picture = ".png",
                 state = "Uttar Pradesh",
                 city = "Merrut";
-
 
         open("https://demoqa.com/automation-practice-form");
         $(".practice-form-wrapper").shouldHave(text("Student Registration Form"));
@@ -74,11 +63,10 @@ public class StudentRegistrationFormWithJavaFakerTests {
         $("#hobbiesWrapper").$(byText(hobby1)).click();
         $("#hobbiesWrapper").$(byText(hobby2)).click();
         $("#hobbiesWrapper").$(byText(hobby3)).click();
-
-        $("#uploadPicture").uploadFile(new File("src/test/resources/" + picture));
-
+        // upload image
+        $("#uploadPicture").uploadFromClasspath("img/" + picture);
+        // set current address
         $("#currentAddress").val(currentAddress);
-
         // set state and city
         $("#state").click();
         $("#stateCity-wrapper").$(byText(state)).click();
@@ -86,11 +74,9 @@ public class StudentRegistrationFormWithJavaFakerTests {
         $("#stateCity-wrapper").$(byText(city)).click();
 
         $("#submit").click();
+        $("#example-modal-sizes-title-lg").shouldHave(text("Thanks for submitting the form"));
 
         // asserts
-        $("#example-modal-sizes-title-lg").shouldHave(text("Thanks for submitting the form"));
-//        $(".table-responsive").shouldHave(text(firstName + " " + lastName),
-//                text(email), text(gender));
         $x("//td[text()='Student Name']").parent().shouldHave(text(firstName + " " + lastName));
         $x("//td[text()='Student Email']").parent().shouldHave(text(email));
         $x("//td[text()='Gender']").parent().shouldHave(text(gender));
@@ -101,29 +87,5 @@ public class StudentRegistrationFormWithJavaFakerTests {
         $x("//td[text()='Picture']").parent().shouldHave(text(picture));
         $x("//td[text()='Address']").parent().shouldHave(text(currentAddress));
         $x("//td[text()='State and City']").parent().shouldHave(text(state + " " + city));
-
     }
-
-    @Test
-    void alfaTest() {
-        open("https://alfabank.ru/make-money/");
-
-        $("[data-test-id=tabs-list-tabTitle-0]").sibling(0).click();
-        // sibling(), preceding(), parent(), closest()
-
-        $(byText("Альфа-Банк является участником системы обязательного страхования вкладов")).shouldBe(visible);
-    }
-
-    static void fillDefaultDateOfBirth() {
-        fillDateOfBirth("10", "20", "1900");
-    }
-
-    static void fillDateOfBirth(String dayOfBirth, String monthOfBirth, String yearOfBirth){
-        $("#dateOfBirthInput").click();
-        $(".react-datepicker__month-select").selectOption(monthOfBirth);
-        $(".react-datepicker__year-select").selectOption(yearOfBirth);
-        $(".react-datepicker__day--0" + dayOfBirth).click();
-    }
-
-
 }
