@@ -18,6 +18,8 @@ import java.util.stream.Stream;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static utils.FileUtils.readStringFromFile;
 
 public class StudentRegistrationFormWithExecuteScriptTests extends TestBase {
@@ -40,8 +42,15 @@ public class StudentRegistrationFormWithExecuteScriptTests extends TestBase {
             state = "Uttar Pradesh",
             city = "Merrut";
 
+    static Map<String, String> expectedData  = new HashMap<>();
+
     @BeforeAll
     static void successfulFillFormTest() throws JsonProcessingException {
+        String firstName = "Alex";
+        String lastName = "Alexov";
+
+        expectedData.put("Student Name", firstName + " " + lastName);
+
         open("https://demoqa.com/automation-practice-form");
         $(".practice-form-wrapper").shouldHave(text("Student Registration Form"));
 
@@ -77,32 +86,26 @@ public class StudentRegistrationFormWithExecuteScriptTests extends TestBase {
 
         $("#submit").click();
         $("#example-modal-sizes-title-lg").shouldHave(text("Thanks for submitting the form"));
-        getBodyContentWithExecuteScript();
-
     }
 
-    @ParameterizedTest
-    @MethodSource("getBodyContentWithExecuteScript")
-    @DisplayName("{label}, {value}")
-    void checkTableData(String label, String value) {
-        System.out.println(label + " " + value);
-        //        $(".table-responsive").shouldHave(text(firstName + " " + lastName),
-//                text(email), text(gender));
-//        $x("//td[text()='Student Name']").parent().shouldHave(text(firstName + " " + lastName));
-//        $x("//td[text()='Student Email']").parent().shouldHave(text(email));
-//        $x("//td[text()='Gender']").parent().shouldHave(text(gender));
-//        $x("//td[text()='Mobile']").parent().shouldHave(text(mobile));
-//        $x("//td[text()='Date of Birth']").parent().shouldHave(text(dayOfBirth + " " + monthOfBirth + "," + yearOfBirth));
-//        $x("//td[text()='Subjects']").parent().shouldHave(text(subject1 + ", " + subject2));
-//        $x("//td[text()='Hobbies']").parent().shouldHave(text(hobby1 + ", " + hobby2 + ", " + hobby3));
-//        $x("//td[text()='Picture']").parent().shouldHave(text(picture));
-//        $x("//td[text()='Address']").parent().shouldHave(text(currentAddress));
-//        $x("//td[text()='State and City']").parent().shouldHave(text(state + " " + city));
+    @ParameterizedTest(name = "{1} {2}")
+    @MethodSource("getTableDataAsStream")
+    void checkTableData(String key, String value) {
+        System.out.println(key + " " + value);
+        assertThat(expectedData.get(key), containsString(value));
     }
 
-    public static Stream<Map<String, String>> getTableDataAsStream() throws JsonProcessingException {
-        return Stream.of( getBodyContentWithExecuteScript());
+    public static Stream<Arguments> getTableDataAsStream() throws JsonProcessingException {
+        return createList(getBodyContentWithExecuteScript()).stream();
     }
+
+    private static List<Arguments> createList(Map<String, String> data) {
+        return data.entrySet()
+                .stream()
+                .map(e -> Arguments.of(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+    }
+
     public static Map<String, String> getBodyContentWithExecuteScript() throws JsonProcessingException {
         String jsCode = readStringFromFile("./src/test/resources/javascript/get_table_data.js");
         String browserResponse = executeJavaScript(jsCode);
