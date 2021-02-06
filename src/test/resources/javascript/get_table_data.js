@@ -1,7 +1,7 @@
-var content = "[";
+jsonObject = {};
 $(".table-responsive tbody tr").each(function(i, element) {
-    content += "{\"label\":\"" + $(element).find("td").first().text() +"\",";
-    content += "\"value\":\"" + $(element).find("td").last().text() +"\"},";
+    key =  $(element).find("td").first().text();
+    value = $(element).find("td").last().text()
+    jsonObject[key] = value;
 });
-content += "]";
-return content.replace("},]", "}]").replace("  ", " ");
+return JSON.stringify(jsonObject);

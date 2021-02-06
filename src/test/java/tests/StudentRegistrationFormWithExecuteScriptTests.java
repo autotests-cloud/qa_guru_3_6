@@ -1,17 +1,19 @@
 package tests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import models.StudentData;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selectors.byText;
@@ -39,7 +41,7 @@ public class StudentRegistrationFormWithExecuteScriptTests extends TestBase {
             city = "Merrut";
 
     @BeforeAll
-    static void successfulFillFormTest() {
+    static void successfulFillFormTest() throws JsonProcessingException {
         open("https://demoqa.com/automation-practice-form");
         $(".practice-form-wrapper").shouldHave(text("Student Registration Form"));
 
@@ -75,37 +77,65 @@ public class StudentRegistrationFormWithExecuteScriptTests extends TestBase {
 
         $("#submit").click();
         $("#example-modal-sizes-title-lg").shouldHave(text("Thanks for submitting the form"));
+        getBodyContentWithExecuteScript();
 
     }
 
     @ParameterizedTest
-    @MethodSource("stringIntAndListProvider")
-    void checkTableData() {
-
+    @MethodSource("getBodyContentWithExecuteScript")
+    @DisplayName("{label}, {value}")
+    void checkTableData(String label, String value) {
+        System.out.println(label + " " + value);
         //        $(".table-responsive").shouldHave(text(firstName + " " + lastName),
 //                text(email), text(gender));
-        $x("//td[text()='Student Name']").parent().shouldHave(text(firstName + " " + lastName));
-        $x("//td[text()='Student Email']").parent().shouldHave(text(email));
-        $x("//td[text()='Gender']").parent().shouldHave(text(gender));
-        $x("//td[text()='Mobile']").parent().shouldHave(text(mobile));
-        $x("//td[text()='Date of Birth']").parent().shouldHave(text(dayOfBirth + " " + monthOfBirth + "," + yearOfBirth));
-        $x("//td[text()='Subjects']").parent().shouldHave(text(subject1 + ", " + subject2));
-        $x("//td[text()='Hobbies']").parent().shouldHave(text(hobby1 + ", " + hobby2 + ", " + hobby3));
-        $x("//td[text()='Picture']").parent().shouldHave(text(picture));
-        $x("//td[text()='Address']").parent().shouldHave(text(currentAddress));
-        $x("//td[text()='State and City']").parent().shouldHave(text(state + " " + city));
+//        $x("//td[text()='Student Name']").parent().shouldHave(text(firstName + " " + lastName));
+//        $x("//td[text()='Student Email']").parent().shouldHave(text(email));
+//        $x("//td[text()='Gender']").parent().shouldHave(text(gender));
+//        $x("//td[text()='Mobile']").parent().shouldHave(text(mobile));
+//        $x("//td[text()='Date of Birth']").parent().shouldHave(text(dayOfBirth + " " + monthOfBirth + "," + yearOfBirth));
+//        $x("//td[text()='Subjects']").parent().shouldHave(text(subject1 + ", " + subject2));
+//        $x("//td[text()='Hobbies']").parent().shouldHave(text(hobby1 + ", " + hobby2 + ", " + hobby3));
+//        $x("//td[text()='Picture']").parent().shouldHave(text(picture));
+//        $x("//td[text()='Address']").parent().shouldHave(text(currentAddress));
+//        $x("//td[text()='State and City']").parent().shouldHave(text(state + " " + city));
     }
 
-    static Stream<StudentData> getStreamData() throws JsonProcessingException {
-        return Stream.of(getBodyContentWithExecuteScript());
+    public static Stream<Map<String, String>> getTableDataAsStream() throws JsonProcessingException {
+        return Stream.of( getBodyContentWithExecuteScript());
     }
+    public static Map<String, String> getBodyContentWithExecuteScript() throws JsonProcessingException {
+        String jsCode = readStringFromFile("./src/test/resources/javascript/get_table_data.js");
+        String browserResponse = executeJavaScript(jsCode);
 
-    public static StudentData getBodyContentWithExecuteScript() throws JsonProcessingException {
-
-        String browserResponce = executeJavaScript(readStringFromFile("src/javascript/get_table_data.js"));
         ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> data = mapper.readValue(browserResponse,
+                new TypeReference<Map<String, String>>(){});
+        System.out.println(data);
 
-        return mapper.readValue(browserResponce, StudentData.class);
+        return data;
+
+
+//        TypeReference<HashMap<String, String>> typeRef
+//                = new TypeReference<HashMap<String, String>>() {};
+//        Map<String, String> map = mapper.readValue(jsonInput, typeRef);
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//
+//        return mapper.readValue(browserResponce, StudentData.class);
     }
-
+//
+//    @ParameterizedTest
+//    @MethodSource("provideStringsForIsBlank")
+//    void isBlank_ShouldReturnTrueForNullOrBlankStrings(String input, boolean expected) {
+//        assertEquals(expected, Strings.isBlank(input));
+//    }
+//
+//    private static Stream<Arguments> provideStringsForIsBlank() {
+//        return Stream.of(
+//                Arguments.of(null, true),
+//                Arguments.of("", true),
+//                Arguments.of("  ", true),
+//                Arguments.of("not blank", false)
+//        );
+//    }
 }
